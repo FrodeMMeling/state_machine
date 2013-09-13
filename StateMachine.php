@@ -181,11 +181,11 @@ class StateMachine {
 		// get the states the machine can move from and to
 		$states = $this->transitions[$transition];
 		
-		if (! isset($states[$this->currentState])) {
+		if (! isset($states[$this->currentState]) && ! isset($states['all'])) {
 			// we canno move from the current state
 			return false;
 		}
 		
-		return $states[$this->currentState];
+		return isset($states[$this->currentState]) ? $states[$this->currentState] : $states['all'];
 	}
 }

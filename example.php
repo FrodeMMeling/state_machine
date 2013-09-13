@@ -48,6 +48,9 @@ $vehicle = new StateMachine('Vehicle', 'parked', array(
 	),
 	'idle'	=> array(
 		'first_gear'	=> 'idling'
+	),
+	'turn_off'	=> array(
+		'all'	=> 'parked'
 	)
 ));
 
@@ -85,6 +88,8 @@ assert($vehicle->isParked() === true);
 assert($vehicle->canShiftUp() === false);
 assert($vehicle->canIgnite() === true);
 assert($vehicle->ignite() === "idling");
+assert($vehicle->turnOff() === 'parked');
+assert($vehicle->ignite() === 'idling');
 assert($vehicle->canPark() === true);
 assert($vehicle->canShiftDown() === false);
 assert($vehicle->canShiftUp() === true);
