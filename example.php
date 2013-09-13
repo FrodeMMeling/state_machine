@@ -45,11 +45,19 @@ $vehicle = new StateMachine ('Vehicle', 'parked', array(
 ));
 
 $vehicle->onTransition(function($toState, $fromState, $transition) {
-	echo "Perfoming: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
+	echo "After performed: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
 });
 
-$vehicle->onIgnite(function($toState, $fromState, $transition) {
-	echo 'Igniting the car.', PHP_EOL;
+$vehicle->onTransition('before', function($toState, $fromState, $transition) {
+	echo "Before performing: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
+});
+
+$vehicle->onIgnite('before', function($toState, $fromState, $transition) {
+	echo 'Before Igniting the car.', PHP_EOL;
+});
+
+$vehicle->onIgnite('after', function($toState, $fromState, $transition) {
+	echo 'After Igniting the car.', PHP_EOL;
 });
 
 assert($vehicle->isParked() === true);
