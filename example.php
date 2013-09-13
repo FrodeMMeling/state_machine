@@ -21,12 +21,12 @@ $vehicle = new StateMachine ('Vehicle', 'parked', array(
 		'idling'	=> 'parked',
 		'first_gear'	=> 'parked'
 	),
-	'shiftup'	=> array(
+	'shift_up'	=> array(
 		'idling' => 'first_gear',
 		'first_gear' => 'second_gear',
 		'second_gear'	=> 'third_gear'
 	),
-	'shiftdown'	=> array(
+	'shift_down'	=> array(
 		'first_gear' => 'idling',
 		'second_gear'	=> 'first_gear',
 		'third_gear'	=> 'second_gear'
@@ -46,6 +46,10 @@ $vehicle = new StateMachine ('Vehicle', 'parked', array(
 
 $vehicle->onTransition(function($toState, $fromState, $transition) {
 	echo "Perfoming: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
+});
+
+$vehicle->onIgnite(function($toState, $fromState, $transition) {
+	echo 'Igniting the car.', PHP_EOL;
 });
 
 assert($vehicle->isParked() === true);

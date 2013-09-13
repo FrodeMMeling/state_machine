@@ -22,10 +22,54 @@ class StateMachine {
 		'transition' => array()
 	);
 	
+	public $methods = array();
+	
 	public function __construct($name, $initial_state, $transitions) {
 		$this->name = $name;
 		$this->initialState = $this->currentState = $initial_state;
 		$this->transitions = $transitions;
+		
+		$availableStates = array();
+		
+		foreach ($transitions as $transition => $states) {
+			foreach ($states as $state_from => $state_to) {
+				if (! in_array($state_from, $availableStates)) {
+					$availableStates[] = $state_from;
+				}
+				
+				if (! in_array($state_to, $availableStates)) {
+					$availableStates[] = $state_to;
+				}
+			}
+			
+			$this->addMethod('can' . $this->formalizeMethodName($transition), function($func) {
+				return !!$this->getStates($this->deFormalizeMethodName($func));
+			});
+			
+			$this->addMethod($this->formalizeMethodName($transition, true), function($func) {
+				$transition = $this->deFormalizeMethodName($func);
+				// the states we are allowed to switch to
+				$statesTo = $this->getStates($transition);
+				
+				// perform transition $transition
+				if (! $statesTo) {
+					return false;
+				}
+				
+				$this->previousState = $this->currentState;
+				$this->currentState = $statesTo;
+				
+				$this->callListeners($transition);
+				
+				return $this->currentState;
+			});
+		}
+		
+		foreach ($availableStates as $state) {
+			$this->addMethod('is' . $this->formalizeMethodName($state), function($func) {
+				return $this->currentState === $this->deFormalizeMethodName($func);
+			});
+		}
 	}
 	
 	/**
@@ -38,36 +82,44 @@ class StateMachine {
 			return call_user_func_array(array ($this, $function), $args);
 		}
 		
-		$matches = array();
+		if (isset($this->methods[$function])) {
+			return $this->methods[$function]($function);
+		}
 		
-		if (preg_match('#^is([a-zA-Z0-9_-]+)#', $function, $matches)) {
-			$state = $matches[1];
-			return $this->currentState === strtolower($state);
-		} elseif (preg_match('#^can([a-zA-Z0-9_-]+)#', $function, $matches)) {
-			// if one can go from $this->currentState to $function
-			$action = strtolower($matches[1]);
-			return !!$this->getStates($action);
-		} elseif (preg_match('#^on([a-zA-Z0-9_-]+)#', $function, $matches)) {
+		if (preg_match('#^on([a-zA-Z0-9_-]+)#', $function, $matches)) {
 			array_unshift($args, $matches[1]);
 			return call_user_func_array(array($this, 'on'), $args);
-		} else {
-			$function = strtolower($function);
-			
-			// the states we are allowed to switch to
-			$statesTo = $this->getStates($function);
-			
-			// perform transition $function
-			if (! $statesTo) {
-				return false;
-			}
-			
-			$this->previousState = $this->currentState;
-			$this->currentState = $statesTo;
-			
-			$this->callListeners($function);
-			
-			return $this->currentState;
 		}
+		
+		throw new Exception('Method does not exist: ' . $function);
+	}
+	
+	/**
+	 *  Returns a formalized method name
+	 *  shift_gear => shiftGear
+	 */
+	protected function formalizeMethodName($name, $camelCase = false) {
+		$name = ucwords(str_replace('_', ' ', $name));
+		
+		if ($camelCase) {
+			// first letter must be lowercased
+			$names = explode(' ', $name);
+			return strtolower($names[0]) . implode('', array_slice($names, 1));
+		}
+		
+		return str_replace (' ', '', $name);
+	}
+	
+	protected function deFormalizeMethodName($name) {
+		$name = preg_replace('#^(can|is)#', '', $name);
+		$names = preg_split('/([[:upper:]][[:lower:]]+)/', $name, null, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
+		$name = strtolower(implode('_', $names));
+		
+		return $name;
+	}
+	
+	public function addMethod($method, Closure $cb) {
+		$this->methods[$method] = $cb;
 	}
 	
 	protected function callListeners($transition) {
