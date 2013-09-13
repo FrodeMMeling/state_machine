@@ -44,50 +44,21 @@ $vehicle = new StateMachine ('Vehicle', 'parked', array(
 	)
 ));
 
-$vehicle->on('ignite', function($to, $from) {
-	echo 'Igniting. From: ', $from, ', to: ', $to, PHP_EOL;
+$vehicle->onTransition(function($toState, $fromState, $transition) {
+	echo "Perfoming: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
 });
 
-$vehicle->onShiftUp(function($to, $from) {
-	echo 'Shifting UP. From: ', $from, ', to: ', $to, PHP_EOL;
-});
-
-echo "Are we parked?\n";
-var_dump ($vehicle->isParked()); // true
-
-echo "Can we shift up?\n";
-var_dump ($vehicle->canShiftUp()); // false
-
-echo "Can we ignite?\n";
-var_dump ($vehicle->canIgnite()); // true
-
-echo "Igniting..\n";
-var_dump ($vehicle->ignite()); // idling
-
-echo "Can we park?\n";
-var_dump ($vehicle->canPark()); // true
-
-echo "Can we shift down?\n";
-var_dump ($vehicle->canShiftDown()); // false
-
-echo "Can we shift up?\n";
-var_dump ($vehicle->canShiftUp()); // true
-
-echo "Shifting up...\n";
-var_dump ($vehicle->shiftUp()); // first_gear
-
-echo "Shifting down..\n";
-var_dump ($vehicle->shiftDown()); // idling
-
-echo "Shifting down..\n";
-var_dump ($vehicle->shiftDown()); // false
-
-echo "Crashing the car..\n";
-var_dump ($vehicle->shiftUp());
-var_dump ($vehicle->crash()); // false
-
-echo "Trying to ignite..\n";
-var_dump ($vehicle->ignite());
-
-echo "No hope, we have to repair..\n";
-var_dump ($vehicle->repair());
+assert($vehicle->isParked() === true);
+assert($vehicle->canShiftUp() === false);
+assert($vehicle->canIgnite() === true);
+assert($vehicle->ignite() === "idling");
+assert($vehicle->canPark() === true);
+assert($vehicle->canShiftDown() === false);
+assert($vehicle->canShiftUp() === true);
+assert($vehicle->shiftUp() === "first_gear");
+assert($vehicle->shiftDown() === "idling");
+assert($vehicle->shiftDown() === false);
+assert($vehicle->shiftUp() === "first_gear");
+assert($vehicle->crash() === "stalled");
+assert($vehicle->ignite() === "stalled");
+assert($vehicle->repair() === "parked");

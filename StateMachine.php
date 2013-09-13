@@ -14,9 +14,13 @@ class StateMachine {
 	
 	public $currentState;
 	
+	public $previousState;
+	
 	public $transitions = array();
 	
-	public $listeners = array();
+	public $listeners = array(
+		'transition' => array()
+	);
 	
 	public function __construct($name, $initial_state, $transitions) {
 		$this->name = $name;
@@ -57,21 +61,37 @@ class StateMachine {
 				return false;
 			}
 			
-			$previousState = $this->currentState;
+			$this->previousState = $this->currentState;
 			$this->currentState = $statesTo;
 			
-			if (isset($this->listeners[$function])) {
-				foreach ($this->listeners[$function] as $cb) {
-					$cb($this->currentState, $previousState);
-				}
-			}
+			$this->callListeners($function);
 			
 			return $this->currentState;
 		}
 	}
 	
-	public function on($transition, $cb) {
-		$this->listeners[strtolower($transition)][] = $cb;
+	protected function callListeners($transition) {
+		$listeners = array();
+		if (isset($this->listeners[$transition])) {
+			$listeners = $this->listeners[$transition];
+		}
+		
+		$listeners = array_merge($listeners, $this->listeners['transition']);
+		
+		foreach ($listeners as $cb) {
+			$cb['cb']($this->currentState, $this->previousState, $transition);
+			
+			if (! $cb['bubble']) {
+				break;
+			}
+		}
+	}
+	
+	public function on($transition, $cb, $bubble = true) {
+		$this->listeners[strtolower($transition)][] = array(
+			'cb' => $cb,
+			'bubble' => $bubble
+		);
 	}
 	
 	/**
