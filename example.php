@@ -14,48 +14,34 @@ require_once 'StateMachine.php';
 
 $vehicle = new StateMachine ('Vehicle', 'parked', array(
 	'ignite'	=> array(
-		'from'	=> 'parked',
-		'to'	=> 'idling'
+		'parked'	=> 'idling'
 	),
 	'park'	=> array(
-		'from'	=> array(
-			'idling', 'first_gear'
-		),
-		'to'	=> 'parked'
+		'idling'	=> 'parked',
+		'first_gear'	=> 'parked'
 	),
 	'shiftup'	=> array(
-		'from'	=> array(
-			'idling', 'first_gear', 'second_gear', 'third_gear'
-		),
-		'to'	=> array(
-			'first_gear', 'second_gear', 'third_gear', 'fourth_gear'
-		)
+		'idling' => 'first_gear',
+		'first_gear' => 'second_gear',
+		'second_gear'	=> 'third_gear'
 	),
 	'shiftdown'	=> array(
-		'from'	=> array(
-			'second_gear', 'third_gear', 'fourth_gear'
-		),
-		'to'	=> array(
-			'first_gear', 'second_gear', 'third_gear'
-		)
+		'first_gear' => 'idling',
+		'second_gear'	=> 'first_gear',
+		'third_gear'	=> 'second_gear'
 	),
 	'idle'	=> array(
-		'from'	=> array(
-			'first_gear', 'second_gear', 'third_gear', 'fourth_gear'
-		),
-		'to'	=> 'idling'
-	),
-	'reverse'	=> array(
-		'from'	=> 'idling',
-		'to'	=> 'reverse'
+		'first_gear'	=> 'idling'
 	)
 ));
 
-var_dump ($vehicle->isParked());
-var_dump ($vehicle->canShiftUp());
-var_dump ($vehicle->canIgnite());
-var_dump ($vehicle->ignite());
-var_dump ($vehicle->canPark());
-var_dump ($vehicle->canShiftDown());
-var_dump ($vehicle->canShiftUp());
-var_dump ($vehicle->shiftUp());
+var_dump ($vehicle->isParked()); // true
+var_dump ($vehicle->canShiftUp()); // false
+var_dump ($vehicle->canIgnite()); // idling
+var_dump ($vehicle->ignite()); // idling
+var_dump ($vehicle->canPark()); // parked
+var_dump ($vehicle->canShiftDown()); // false
+var_dump ($vehicle->canShiftUp()); // first_gear
+var_dump ($vehicle->shiftUp()); // first_gear
+var_dump ($vehicle->shiftDown()); // idling
+var_dump ($vehicle->shiftDown()); // false

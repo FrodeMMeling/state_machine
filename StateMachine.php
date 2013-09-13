@@ -34,6 +34,7 @@ class StateMachine {
 			$state = $matches[1];
 			return $this->currentState === strtolower($state);
 		} elseif (preg_match('#^can([a-zA-Z0-9_-]+)#', $function, $matches)) {
+			// if one can go from $this->currentState to $function
 			$action = strtolower($matches[1]);
 			
 			if (! isset($this->transitions[$action])) {
@@ -41,32 +42,29 @@ class StateMachine {
 			}
 			
 			$states = $this->transitions[$action];
-			$transitions = $states['from'];
 			
-			if (! is_array ($transitions)) {
-				$transitions = array ($transitions);
-			}
-			
-			return in_array ($this->currentState, $transitions);
-		} else {
-			$function = strtolower($function);
-			
-			// perform transition $function
-			if (! $this->{"can" . $function}()) {
+			if (! isset($states[$this->currentState])) {
+				// we cannot move from $this->currentState to $action
 				return false;
 			}
 			
-			$states = $this->transitions[$function];
-			$transitions = $states['to'];
+			$transitions = $states[$this->currentState];
 			
-			if (! is_array ($transitions)) {
-				$this->currentState = $transitions;
-				return $this->currentState;
+			// return true;
+			return $transitions;
+		} else {
+			$function = strtolower($function);
+			
+			// the states we are allowed to switch to
+			$statesTo = $this->{"can" . $function}();
+			
+			// perform transition $function
+			if (! $statesTo) {
+				return false;
 			}
 			
-			// we can move to many different states. we have to figure out
-			// exactly which one we can move to.
-			
+			$this->currentState = $statesTo;
+			return $this->currentState;
 		}
 	}
 }
