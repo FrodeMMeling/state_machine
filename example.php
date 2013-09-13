@@ -44,6 +44,24 @@ $vehicle = new StateMachine ('Vehicle', 'parked', array(
 	)
 ));
 
+$vehicle->addMethod('isMoving', function($f, $currentState) {
+	return in_array($currentState, array('first_gear', 'second_gear', 'third_gear'));
+});
+
+$vehicle->addMethod('speed', function($f, $currentState) {
+	$factor = 0;
+	
+	if ($currentState === 'first_gear') {
+		$factor = 1;
+	} elseif ($currentState === 'second_gear') {
+		$factor = 2;
+	} elseif ($currentState === 'third_gear') {
+		$factor = 3;
+	}
+	
+	return 10 * $factor;
+});
+
 $vehicle->onTransition(function($toState, $fromState, $transition) {
 	echo "After performed: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
 });
@@ -52,11 +70,11 @@ $vehicle->onTransition('before', function($toState, $fromState, $transition) {
 	echo "Before performing: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
 });
 
-$vehicle->onIgnite('before', function($toState, $fromState, $transition) {
+$vehicle->onIgnite('before', function() {
 	echo 'Before Igniting the car.', PHP_EOL;
 });
 
-$vehicle->onIgnite('after', function($toState, $fromState, $transition) {
+$vehicle->onIgnite('after', function() {
 	echo 'After Igniting the car.', PHP_EOL;
 });
 
@@ -68,7 +86,9 @@ assert($vehicle->canPark() === true);
 assert($vehicle->canShiftDown() === false);
 assert($vehicle->canShiftUp() === true);
 assert($vehicle->shiftUp() === "first_gear");
+assert($vehicle->speed() === 10);
 assert($vehicle->shiftDown() === "idling");
+assert($vehicle->isMoving() === false);
 assert($vehicle->shiftDown() === false);
 assert($vehicle->shiftUp() === "first_gear");
 assert($vehicle->crash() === "stalled");

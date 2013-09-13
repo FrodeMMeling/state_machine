@@ -88,7 +88,7 @@ class StateMachine {
 		}
 		
 		if (isset($this->methods[$function])) {
-			return $this->methods[$function]($function);
+			return $this->methods[$function]($function, $this->currentState);
 		}
 		
 		if (preg_match('#^on([a-zA-Z0-9_-]+)#', $function, $matches)) {
