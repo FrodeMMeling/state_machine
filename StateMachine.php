@@ -18,12 +18,14 @@ class StateMachine {
 	
 	public $transitions = array();
 	
-	public $listeners = array(
+	public $transitionListeners = array(
 		'transition' => array(
 			'before' => array(),
 			'after'	=> array()
 		)
 	);
+	
+	public $stateListeners = array();
 	
 	public $methods = array();
 	
@@ -65,6 +67,12 @@ class StateMachine {
 				$this->currentState = $statesTo;
 				
 				$this->callListeners($transition, 'after');
+				
+				if (isset($this->stateListeners[$this->currentState])) {
+					foreach ($this->stateListeners[$this->currentState] as $cb) {
+						$cb();
+					}
+				}
 				
 				return $this->currentState;
 			});
@@ -134,11 +142,11 @@ class StateMachine {
 	
 	protected function callListeners($transition, $triggerType = 'after') {
 		$listeners = array();
-		if (isset($this->listeners[$transition][$triggerType])) {
-			$listeners = $this->listeners[$transition][$triggerType];
+		if (isset($this->transitionListeners[$transition][$triggerType])) {
+			$listeners = $this->transitionListeners[$transition][$triggerType];
 		}
 		
-		$listeners = array_merge($listeners, $this->listeners['transition'][$triggerType]);
+		$listeners = array_merge($listeners, $this->transitionListeners['transition'][$triggerType]);
 		
 		foreach ($listeners as $cb) {
 			$cb['cb']($this->currentState, $this->previousState, $transition);
@@ -150,10 +158,14 @@ class StateMachine {
 	}
 	
 	public function on($transition, $triggerType = 'after', Closure $cb, $bubble = true) {
-		$this->listeners[strtolower($transition)][$triggerType][] = array(
+		$this->transitionListeners[strtolower($transition)][$triggerType][] = array(
 			'cb' => $cb,
 			'bubble' => $bubble
 		);
+	}
+	
+	public function when($state, Closure $cb) {
+		$this->stateListeners[strtolower($state)][] = $cb;
 	}
 	
 	/**

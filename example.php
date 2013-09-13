@@ -12,7 +12,14 @@
  */
 require_once 'StateMachine.php';
 
-$vehicle = new StateMachine ('Vehicle', 'parked', array(
+/**
+ *  new StateMachine (name, initialState, array(
+ *  	transition => array(
+ *  		stateFrom => stateTo
+ *  	)
+ *  ));
+ */
+$vehicle = new StateMachine('Vehicle', 'parked', array(
 	'ignite'	=> array(
 		'parked'	=> 'idling',
 		'stalled'	=> 'stalled'
@@ -62,20 +69,16 @@ $vehicle->addMethod('speed', function($f, $currentState) {
 	return 10 * $factor;
 });
 
-$vehicle->onTransition(function($toState, $fromState, $transition) {
-	echo "After performed: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
-});
-
-$vehicle->onTransition('before', function($toState, $fromState, $transition) {
-	echo "Before performing: <", $transition, "> from state <", $fromState, "> to <", $toState, ">", PHP_EOL;
-});
-
 $vehicle->onIgnite('before', function() {
 	echo 'Before Igniting the car.', PHP_EOL;
 });
 
-$vehicle->onIgnite('after', function() {
-	echo 'After Igniting the car.', PHP_EOL;
+$vehicle->when('parked', function() {
+	echo 'The Car is now PARKED', PHP_EOL;
+});
+
+$vehicle->when('stalled', function() {
+	echo 'Oh, no! The car broke down :-(', PHP_EOL;
 });
 
 assert($vehicle->isParked() === true);
